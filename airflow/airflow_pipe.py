@@ -6,15 +6,22 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import timedelta
 from train_model import train
+from pathlib import Path
+from airflow.operators.empty import EmptyOperator
 
-def download_data():
-    df = pd.read_csv('house_sales.csv', delimiter=',')
-    df.to_csv("house_sales_processed.csv", index=False)
+
+def download_data(**context):
+    dag_dir = Path(file).parent
+    csv_path = dag_dir / 'house_sales.csv'
+    df = pd.read_csv(csv_path, delimiter=',')
+
     print("Initial data shape:", df.shape)
-    return df
+    return df.to_json(orient='split')
 
-def clear_data():
-    df = pd.read_csv("house_sales_processed.csv")
+def clear_data(**context):
+    ti = context['ti']
+    json_data = ti.xcom_pull(task_ids='download_house_data')
+    df = pd.read_json(json_data, orient='split')
 
     df = df.drop(columns=['DocumentDate', 'ym', 'PropertyID', 'ZipCode', 'YrRenovated'])
     df = df.dropna()
@@ -40,15 +47,16 @@ def clear_data():
     ordinal = OrdinalEncoder()
     df[cat_columns] = ordinal.fit_transform(df[cat_columns])
     
-    df.to_csv('df_clear.csv', index=False)
-    print("Cleaned data shape:", df.shape)
-    return True
 
+    print("Cleaned data shape:", df.shape)
+    return df.to_json(orient='split')
+
+    
 # определение DAG
 dag_houses = DAG(
     dag_id="train_house_pipeline",
     start_date=datetime(2025, 3, 1),
-    schedule_interval=timedelta(days=1),
+    schedule_interval=timedelta(minutes=5),
     catchup=False,
     max_active_runs=1,
     default_args={
