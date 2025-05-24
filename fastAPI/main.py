@@ -4,6 +4,7 @@ import pandas as pd
 import joblib
 import logging
 from typing import Optional
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,18 +22,22 @@ app = FastAPI(title="House Price Prediction")
 
 # Модель входных данных (аналогично CarFeatures)
 class HouseFeatures(BaseModel):
+    SalePrice: int
     PropertyType: str
-    NewConstruction: str
+    zhvi_px: int
+    zhvi_idx: float
     NbrLivingUnits: int
-    SqFtLot: float
-    SqFtTotLiving: float
+    SqFtLot: int
+    SqFtTotLiving: int
     SqFtFinBasement: float
-    YrBuilt: int
-    LandVal: float
-    ImpsVal: float
     Bathrooms: int
     Bedrooms: int
     BldgGrade: int
+    YrBuilt: int
+    TrafficNoise: int
+    LandVal: int
+    ImpsVal: int
+    NewConstruction: str
 
 @app.post("/predict", summary="Predict house price")
 async def predict(house: HouseFeatures):

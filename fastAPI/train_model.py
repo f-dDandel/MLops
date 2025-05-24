@@ -12,7 +12,17 @@ def train_and_save_model():
     df = df.drop(columns=['DocumentDate', 'ym', 'PropertyID', 'ZipCode', 'YrRenovated'])
     df = df.dropna()
     df = df[(df['NbrLivingUnits'] > 0) & (df['NbrLivingUnits'] < 3)]
-    # ... остальные фильтры ...
+    df = df[(df['AdjSalePrice'] < 1000000) & (df['AdjSalePrice'] > 3000)]
+    df = df[(df['SqFtLot'] > 500) & (df['SqFtLot'] < 20000)]
+    df = df[(df['SqFtTotLiving'] > 360) & (df['SqFtTotLiving'] < 5100)]
+    df = df[(df['SalePrice'] > 3000) & (df['SalePrice'] < 1000000)]
+    df = df[df['SqFtFinBasement'] < 1300]
+    df = df[(df['YrBuilt'] > 1899) & (df['YrBuilt'] < 2025)]
+    df = df[(df['LandVal'] >= 0) & (df['LandVal'] < 800000)]
+    df = df[(df['ImpsVal'] >= 0) & (df['ImpsVal'] < 900000)]
+    df = df[(df['Bathrooms'] > 0) & (df['Bathrooms'] < 5)]
+    df = df[(df['Bedrooms'] > 0) & (df['Bedrooms'] < 7)]
+    df = df[(df['BldgGrade'] > 5) & (df['BldgGrade'] < 12)]
 
     # Кодирование категориальных признаков
     cat_columns = ['PropertyType', 'NewConstruction']
@@ -30,9 +40,11 @@ def train_and_save_model():
     model.fit(X_scaled, y)
 
     # Сохранение модели и scaler
+    print(df.columns)
     joblib.dump(model, "lasso_house_model.joblib")
     joblib.dump(scaler, "scaler.joblib")
     print("Model saved as lasso_house_model.joblib")
+
 
 if __name__ == "__main__":
     train_and_save_model()
